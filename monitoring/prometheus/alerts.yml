@@ -1,0 +1,103 @@
+groups:
+  - name: resultshield_alerts
+    interval: 30s
+    rules:
+      # High error rate
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status_code=~"5.."}[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }} for {{ $labels.job }}"
+
+      # High response time
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High response time detected"
+          description: "95th percentile response time is {{ $value }}s for {{ $labels.job }}"
+
+      # Low cache hit ratio
+      - alert: LowCacheHitRatio
+        expr: rate(cache_hits_total[5m]) / (rate(cache_hits_total[5m]) + rate(cache_misses_total[5m])) < 0.7
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low cache hit ratio"
+          description: "Cache hit ratio is {{ $value | humanizePercentage }}"
+
+      # High rate limit rejections
+      - alert: HighRateLimitRejections
+        expr: rate(rate_limit_exceeded_total[5m]) > 100
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High rate limit rejections"
+          description: "Rate limit rejections: {{ $value }}/s"
+
+      # Circuit breaker open
+      - alert: CircuitBreakerOpen
+        expr: circuit_breaker_state == 2
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Circuit breaker is open"
+          description: "Circuit breaker for {{ $labels.service }} is open"
+
+      # Database connection pool exhaustion
+      - alert: DatabasePoolExhaustion
+        expr: (pg_stat_database_numbackends / pg_settings_max_connections) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Database connection pool near exhaustion"
+          description: "Database connections at {{ $value | humanizePercentage }} of max"
+
+      # High memory usage
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value | humanizePercentage }}"
+
+      # Service down
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service is down"
+          description: "{{ $labels.job }} is down"
+
+      # High queue depth
+      - alert: HighQueueDepth
+        expr: waiting_room_queue_depth > 50000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High queue depth"
+          description: "Queue depth is {{ $value }}"
+
+      # Long queue wait time
+      - alert: LongQueueWaitTime
+        expr: waiting_room_avg_wait_time_seconds > 60
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Long queue wait time"
+          description: "Average wait time is {{ $value }}s"

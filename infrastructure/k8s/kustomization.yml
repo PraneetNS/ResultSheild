@@ -1,0 +1,35 @@
+---
+# ============================================================
+# ResultShield — Kubernetes Deployment Guide
+# ============================================================
+#
+# Apply in order:
+#   kubectl apply -f infrastructure/k8s/00-namespace-config.yml
+#   kubectl apply -f infrastructure/k8s/01-statefulsets.yml
+#   kubectl apply -f infrastructure/k8s/02-deployments.yml
+#
+# On Minikube / Docker Desktop (local):
+#   kubectl apply -k infrastructure/k8s/
+#
+# Prerequisites:
+#   - kubectl configured to target your cluster
+#   - Docker images built and pushed:
+#       docker build -t resultshield/api-gateway:latest ./services/api-gateway
+#       docker build -t resultshield/result-service:latest ./services/result-service
+#       docker build -t resultshield/waiting-room:latest ./services/waiting-room
+#       docker build -t resultshield/ai-predictor:latest ./services/ai-predictor
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: resultshield
+
+resources:
+  - 00-namespace-config.yml
+  - 01-statefulsets.yml
+  - 02-deployments.yml
+
+commonLabels:
+  app.kubernetes.io/managed-by: kustomize
+  app.kubernetes.io/part-of: resultshield
+  environment: production

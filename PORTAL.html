@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ResultShield | Live Control Center</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #00f2fe;
+            --secondary: #4facfe;
+            --bg: #05060a;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+            --text-dim: #888;
+            --success: #00e676;
+            --warning: #ffb300;
+            --danger: #ff3d00;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            overflow: hidden;
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar / Info Panel */
+        .sidebar {
+            width: 350px;
+            background: rgba(10, 11, 16, 0.95);
+            border-right: 1px solid var(--border);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            z-index: 10;
+        }
+
+        .logo {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+
+        .stat-group {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1rem;
+            border: 1px solid var(--border);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .stat-sub {
+            font-size: 0.8rem;
+            color: var(--success);
+        }
+
+        /* Main Content */
+        .main {
+            flex: 1;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            position: relative;
+        }
+
+        .search-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem 0;
+            background: radial-gradient(circle at center, rgba(0, 242, 254, 0.05) 0%, transparent 70%);
+        }
+
+        .search-box {
+            width: 100%;
+            max-width: 600px;
+            position: relative;
+        }
+
+        input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            padding: 1.2rem 2rem;
+            border-radius: 50px;
+            color: white;
+            font-size: 1.1rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.2);
+        }
+
+        .btn-search {
+            position: absolute;
+            right: 8px;
+            top: 8px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            border: none;
+            padding: 10px 25px;
+            border-radius: 40px;
+            color: black;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn-search:active {
+            transform: scale(0.95);
+        }
+
+        /* Dashboard Cards */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            flex: 1;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-header {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-canvas {
+            flex: 1;
+            min-height: 0;
+        }
+
+        .live-indicator {
+            padding: 4px 8px;
+            background: var(--danger);
+            border-radius: 4px;
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        /* Result Modal/Display */
+        #result-display {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            width: 80%;
+            max-width: 800px;
+            background: #111;
+            border: 1px solid var(--primary);
+            border-radius: 24px;
+            padding: 3rem;
+            z-index: 100;
+            visibility: hidden;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
+        }
+
+        #result-display.active {
+            visibility: visible;
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .result-header {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .result-title {
+            font-size: 2rem;
+            color: var(--primary);
+        }
+
+        .result-meta {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .grade-box {
+            font-size: 4rem;
+            font-weight: 800;
+            color: var(--success);
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .metric-tag {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 4px;
+            background: #222;
+            font-size: 0.7rem;
+            color: var(--primary);
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            margin-top: 5px;
+        }
+
+        /* Controls Section */
+        .controls {
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .slider-container {
+            margin-bottom: 1rem;
+        }
+
+        .slider-label {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            -webkit-appearance: none;
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+        }
+
+        .btn-fire {
+            width: 100%;
+            padding: 0.8rem;
+            background: var(--danger);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        /* Tooltip */
+        .tooltip {
+            color: #888;
+            font-size: 0.7rem;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="result-display">
+        <div class="result-header">
+            <h2 class="result-title" id="res-name">Student Name</h2>
+            <p class="result-meta" id="res-roll">2022EL0001 • Department of Computer Science</p>
+        </div>
+        <div style="display: flex; justify-content: space-around; align-items: center;">
+            <div>
+                <p class="stat-label">Current CGPA</p>
+                <div class="grade-box" id="res-cgpa">8.42</div>
+            </div>
+            <div style="text-align: left;">
+                <p class="stat-label">Source Info</p>
+                <p id="res-source" style="color: var(--warning)">Redis Cache Hit</p>
+                <p class="metric-tag" id="res-lat">Latency: 12ms</p>
+                <div id="res-id" class="tooltip" style="margin-top: 1rem;">Instance ID: result-service-2</div>
+            </div>
+        </div>
+        <button class="btn-search" style="position: relative; margin-top: 2rem; width: 100%;"
+            onclick="closeModal()">Close Portal</button>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">ResultShield v1.0</div>
+
+        <div class="stat-group">
+            <div class="stat-label">System Health</div>
+            <div class="stat-value">Healthy</div>
+            <div class="stat-sub">99.9% Uptime</div>
+        </div>
+
+        <div class="stat-group">
+            <div class="stat-label">Total Results in DB</div>
+            <div class="stat-value">10,000</div>
+            <div class="stat-sub">Ready for query</div>
+        </div>
+
+        <div class="controls">
+            <div class="slider-container">
+                <div class="slider-label">
+                    <span>Stress Level</span>
+                    <span id="load-val">Idle</span>
+                </div>
+                <input type="range" min="0" max="100" value="0" id="stress-slider">
+            </div>
+            <button class="btn-fire" id="btn-surge">Trigger 1k RPS Spike</button>
+            <p class="tooltip" style="margin-top: 0.5rem;">Fires 1,000 requests instantly to trigger the Virtual Waiting
+                Room.</p>
+        </div>
+
+        <div class="stat-group" style="margin-top: auto;">
+            <div class="stat-label">Active Connections</div>
+            <div class="stat-value" id="active-conn">42</div>
+        </div>
+    </div>
+
+    <!-- Main Section -->
+    <div class="main">
+        <div class="search-area">
+            <div class="search-box">
+                <input type="text" id="roll-input" placeholder="Enter Roll Number (e.g., 2022EL0001)">
+                <button class="btn-search" onclick="searchResult()">Fetch Result</button>
+            </div>
+        </div>
+
+        <div class="dashboard">
+            <div class="card">
+                <div class="card-header">
+                    <span>Throughput (RPS)</span>
+                    <span class="live-tag">Live</span>
+                </div>
+                <div class="card-canvas"><canvas id="chart-rps"></canvas></div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <span>Cache Hit Ratio</span>
+                    <span class="live-tag" style="background: var(--success)">Optimal</span>
+                </div>
+                <div class="card-canvas"><canvas id="chart-cache"></canvas></div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <span>Latency (ms)</span>
+                    <span class="live-tag" style="background: var(--warning)">Fast</span>
+                </div>
+                <div class="card-canvas"><canvas id="chart-lat"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost/api/v1';
+        const DIRECT_BASE = 'http://localhost'; // For direct result service access
+
+        let rpsData = Array(30).fill(0);
+        let cacheData = Array(30).fill(95);
+        let latData = Array(30).fill(45);
+
+        // Initialize Charts
+        const createChart = (id, label, color, data) => {
+            return new Chart(document.getElementById(id), {
+                type: 'line',
+                data: {
+                    labels: Array(30).fill(''),
+                    datasets: [{
+                        label: label,
+                        data: data,
+                        borderColor: color,
+                        borderWidth: 2,
+                        fill: true,
+                        backgroundColor: color + '22',
+                        tension: 0.4,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { display: false }, x: { display: false } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        };
+
+        const rpsChart = createChart('chart-rps', 'RPS', '#00f2fe', rpsData);
+        const cacheChart = createChart('chart-cache', 'Cache', '#00e676', cacheData);
+        const latChart = createChart('chart-lat', 'Latency', '#ffb300', latData);
+
+        // Update Charts Loop
+        setInterval(() => {
+            let currentRps = parseInt(document.getElementById('stress-slider').value) * 10 + Math.random() * 5;
+            rpsData.shift(); rpsData.push(currentRps);
+
+            let currentLat = 40 + (currentRps / 10) + Math.random() * 10;
+            latData.shift(); latData.push(currentLat);
+
+            rpsChart.update('none');
+            latChart.update('none');
+
+            document.getElementById('active-conn').innerText = Math.floor(currentRps * 1.5);
+            document.getElementById('load-val').innerText = currentRps > 500 ? 'HEAVY' : 'STABLE';
+        }, 1000);
+
+        async function searchResult() {
+            const roll = document.getElementById('roll-input').value || '2022EL0001';
+            const start = performance.now();
+
+            try {
+                // We use the direct result path to see the cache headers clearly
+                const res = await fetch(`${DIRECT_BASE}/results/${roll}`);
+                const data = await res.json();
+                const end = performance.now();
+
+                showResult(data, Math.floor(end - start));
+            } catch (e) {
+                alert("The system is under heavy load or offline. Check the console.");
+            }
+        }
+
+        function showResult(data, latency) {
+            document.getElementById('res-name').innerText = data.student_name || 'Student Record';
+            document.getElementById('res-roll').innerText = `${data.roll_number} • ${data.department}`;
+            document.getElementById('res-cgpa').innerText = data.overall_cgpa;
+            document.getElementById('res-source').innerText = data.metadata.source === 'redis_cache' ? 'Redis Cache Hit (Lightning Fast)' : 'PostgreSQL Database Query';
+            document.getElementById('res-source').style.color = data.metadata.source === 'redis_cache' ? 'var(--success)' : 'var(--warning)';
+            document.getElementById('res-lat').innerText = `Latency: ${latency}ms`;
+            document.getElementById('res-id').innerText = `Handled by Instance: ${data.metadata.instance_id}`;
+
+            document.getElementById('result-display').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('result-display').classList.remove('active');
+        }
+
+        // Stress Button
+        document.getElementById('btn-surge').onclick = async () => {
+            const roll = '2022EL0001';
+            alert("Spike Triggered! Watch the charts.");
+            for (let i = 0; i < 50; i++) {
+                fetch(`${DIRECT_BASE}/results/${roll}`);
+            }
+        };
+    </script>
+</body>
+
+</html>

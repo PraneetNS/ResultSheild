@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shield University | Examination Portal</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;700&family=Inter:wght@300;400;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --university-red: #8c1515;
+            --university-gold: #e2c044;
+            --bg: #fdfdfd;
+            --text-dark: #2e2e2e;
+            --border: #e0e0e0;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
+        /* University Header */
+        .uni-header {
+            background: var(--university-red);
+            color: white;
+            padding: 1.5rem 10%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 4px solid var(--university-gold);
+        }
+
+        .uni-logo {
+            font-family: 'Crimson Pro', serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1000px;
+            margin: 4rem auto;
+            padding: 0 2rem;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-family: 'Crimson Pro', serif;
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--university-red);
+        }
+
+        /* Portal Card */
+        .portal-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            margin-top: 2rem;
+        }
+
+        .card-header {
+            background: #f8f8f8;
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            font-weight: 700;
+            text-align: left;
+        }
+
+        .search-form {
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .input-group {
+            width: 100%;
+            max-width: 400px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            color: #888;
+        }
+
+        input {
+            width: 100%;
+            padding: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 1.1rem;
+        }
+
+        .btn-submit {
+            background: var(--university-red);
+            color: white;
+            border: none;
+            padding: 1rem 3rem;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-submit:hover {
+            background: #6b1010;
+            transform: translateY(-2px);
+        }
+
+        /* Waiting Room Overlay */
+        #waiting-room {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .queue-box {
+            background: #fff;
+            color: #333;
+            width: 90%;
+            max-width: 500px;
+            padding: 3rem;
+            border-radius: 20px;
+            text-align: center;
+        }
+
+        .queue-num {
+            font-size: 4rem;
+            font-weight: 800;
+            color: var(--university-red);
+            margin: 1.5rem 0;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #eee;
+            border-top: 5px solid var(--university-red);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 2rem;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Result Popup */
+        #result-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 80%;
+            max-width: 700px;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 3rem;
+            border-radius: 12px;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.3);
+            z-index: 500;
+            display: none;
+            border-top: 10px solid var(--university-red);
+        }
+
+        .score {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #2e7d32;
+        }
+
+        /* Monitors */
+        .traffic-monitor {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 300px;
+            background: #111;
+            color: #00ff00;
+            padding: 1rem;
+            border-radius: 12px;
+            font-family: monospace;
+            font-size: 0.8rem;
+        }
+
+        .spike-panel {
+            position: fixed;
+            left: 20px;
+            bottom: 20px;
+            background: white;
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="uni-header">
+        <div class="uni-logo">SHIELD UNIVERSITY</div>
+        <nav class="nav-links"><a href="#">PORTAL</a><a href="#">HELP</a></nav>
+    </header>
+
+    <div class="container">
+        <div class="hero">
+            <h1>Official Result Portal</h1>
+            <p>Shield Institute of Technology Examination Authority</p>
+        </div>
+
+        <div class="portal-card">
+            <div class="card-header">EXAMINATION RESULTS 2024</div>
+            <div class="search-form">
+                <div class="input-group">
+                    <label>Student Roll Number</label>
+                    <input type="text" id="roll-number" placeholder="Try 2022EL0001">
+                </div>
+                <button class="btn-submit" onclick="fetchResult()">View Results</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Waiting Room -->
+    <div id="waiting-room">
+        <div class="queue-box">
+            <div class="spinner"></div>
+            <h3>System at Capacity</h3>
+            <p>You have been placed in a secured queue due to high traffic.</p>
+            <div class="queue-num" id="queue-pos">0</div>
+            <p id="queue-status">Calculating wait time...</p>
+        </div>
+    </div>
+
+    <!-- Result Popup -->
+    <div id="result-popup">
+        <h2 id="student-name">Student Name</h2>
+        <p id="student-roll">2022EL0001</p>
+        <div class="score" id="student-cgpa">8.42</div>
+        <div style="background: #fdf8e4; padding: 1rem; margin: 1.5rem 0; font-size: 0.8rem;">Official result verified.
+        </div>
+        <p id="meta-text" style="font-size: 0.7rem; color: #888;"></p>
+        <button class="btn-submit" style="width: 100%;" onclick="closePopup()">Close</button>
+    </div>
+
+    <!-- Traffic Monitor -->
+    <div class="traffic-monitor">
+        <div><strong>SYSTEM STATUS</strong></div>
+        <div id="monitor-rps">RPS: 0.0</div>
+        <div id="monitor-lat">Latency: 0ms</div>
+        <div id="live-logs" style="height: 60px; overflow: hidden; font-size: 0.7rem; margin-top: 10px;"></div>
+    </div>
+
+    <!-- Simulator -->
+    <div class="spike-panel">
+        <strong>TRAFFIC SIMULATOR</strong>
+        <button class="btn-submit" style="padding: 0.5rem; font-size: 0.7rem;" onclick="triggerSpike(50)">Simulate 50
+            Users</button>
+        <button class="btn-submit" style="padding: 0.5rem; font-size: 0.7rem; background: #e53935;"
+            onclick="triggerSpike(200)">Simulate DDoS Attack</button>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost/api/v1/results';
+        let waitingToken = null;
+        let myUserId = 'user-' + Math.random().toString(36).substring(2, 9);
+
+        function addLog(msg) {
+            const logs = document.getElementById('live-logs');
+            logs.innerHTML = `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>` + logs.innerHTML;
+        }
+
+        async function fetchResult() {
+            const rollInput = document.getElementById('roll-number').value.trim();
+            const roll = rollInput || '2022EL0001';
+            const start = performance.now();
+            addLog(`Requesting ${roll}...`);
+
+            try {
+                const headers = { 'Content-Type': 'application/json', 'X-User-ID': myUserId };
+                if (waitingToken) headers['X-Waiting-Room-Token'] = waitingToken;
+
+                const response = await fetch(`${API_URL}/${roll}`, { headers });
+                const lat = Math.round(performance.now() - start);
+                document.getElementById('monitor-lat').innerText = `Latency: ${lat}ms`;
+
+                if (response.status === 503) {
+                    const data = await response.json();
+                    if (data.waiting_room) {
+                        showWaitingRoom(data);
+                        return;
+                    }
+                }
+
+                if (response.status === 404) {
+                    addLog(`NOT FOUND: ${roll}`);
+                    alert("Roll number not found. Try: 2022EL0001 or 2021CO0003");
+                    return;
+                }
+
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const data = await response.json();
+                displayResult(data, lat);
+            } catch (err) {
+                addLog(`Connection Error: ${err.message}`);
+                console.error('Fetch Error:', err);
+            }
+        }
+
+        function showWaitingRoom(data) {
+            document.getElementById('waiting-room').style.display = 'flex';
+            document.getElementById('queue-pos').innerText = data.queuePosition;
+            document.getElementById('queue-status').innerText = `Estimated wait: ${Math.round(data.estimatedWaitTime)}s`;
+            addLog(`QUEUED: Position ${data.queuePosition}`);
+            setTimeout(fetchResult, 3000);
+        }
+
+        function displayResult(data, lat) {
+            document.getElementById('waiting-room').style.display = 'none';
+            document.getElementById('result-popup').style.display = 'block';
+            document.getElementById('student-name').innerText = data.student_name;
+            document.getElementById('student-roll').innerText = data.roll_number;
+            document.getElementById('student-cgpa').innerText = data.overall_cgpa;
+            document.getElementById('meta-text').innerText = `Source: ${data.metadata.source} | Instance: ${data.metadata.instance_id}`;
+            addLog(`SUCCESS: Found ${data.roll_number}`);
+        }
+
+        function closePopup() { document.getElementById('result-popup').style.display = 'none'; }
+
+        async function triggerSpike(count) {
+            addLog(`SPIKE: Sending ${count} different users in batches...`);
+            const batchSize = 10;
+            for (let i = 0; i < count; i += batchSize) {
+                const batch = [];
+                for (let j = 0; j < batchSize && (i + j) < count; j++) {
+                    const fakeId = 'bot-' + Math.random().toString(36).substring(2, 9);
+                    batch.push(fetch(`${API_URL}/2022EL0001`, { headers: { 'X-User-ID': fakeId } }).catch(() => { }));
+                }
+                await Promise.all(batch);
+                addLog(`SPIKE: Sent ${Math.min(i + batchSize, count)}/${count}...`);
+                await new Promise(r => setTimeout(r, 100)); // Small delay between batches
+            }
+            addLog('SPIKE: Surge complete. Testing access...');
+            setTimeout(fetchResult, 1000);
+        }
+    </script>
+</body>
+
+</html>

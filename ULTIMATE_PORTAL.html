@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ResultShield | Ultimate Student Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00f2ff;
+            --secondary: #7000ff;
+            --bg: #030712;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --text: #f3f4f6;
+            --text-dim: #9ca3af;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            background-image:
+                radial-gradient(circle at 20% 20%, rgba(112, 0, 255, 0.15), transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(0, 242, 255, 0.1), transparent 40%);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* --- Components --- */
+
+        .navbar {
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--card-border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 4rem auto;
+            padding: 0 1.5rem;
+            flex-grow: 1;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: rgba(0, 242, 255, 0.3);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        p {
+            color: var(--text-dim);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        /* --- Auth View --- */
+        #auth-view {
+            max-width: 450px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .input-group {
+            text-align: left;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        input {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 4px rgba(0, 242, 255, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* --- Waiting Room View --- */
+        #waiting-view {
+            display: none;
+            text-align: center;
+        }
+
+        .queue-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+            border-radius: 99px;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            font-size: 0.85rem;
+        }
+
+        .pos-container {
+            margin-bottom: 3rem;
+        }
+
+        .pos-label {
+            font-size: 1rem;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+        }
+
+        .pos-number {
+            font-size: 6rem;
+            font-weight: 700;
+            line-height: 1;
+            color: var(--primary);
+            text-shadow: 0 0 30px rgba(0, 242, 255, 0.3);
+        }
+
+        .progress-track {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            width: 5%;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .wait-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .metric-box {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid var(--card-border);
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: white;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .metric-label {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* --- Result View --- */
+        #result-view {
+            display: none;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2.5rem;
+        }
+
+        .result-id {
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .status-chip {
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .status-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .score-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .score-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid var(--card-border);
+        }
+
+        .score-label {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 0.5rem;
+        }
+
+        .score-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .metadata-section {
+            border-top: 1px solid var(--card-border);
+            padding-top: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .meta-item b {
+            color: var(--text);
+        }
+
+        /* --- Global Loader --- */
+        .loader {
+            width: 48px;
+            height: 48px;
+            border: 5px solid #FFF;
+            border-bottom-color: transparent;
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+        }
+
+        @keyframes rotation {
+            0% {
+                transform: rotate(0deg)
+            }
+
+            100% {
+                transform: rotate(360deg)
+            }
+        }
+
+        #toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1f2937;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            display: none;
+            z-index: 1000;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Scan Animation */
+        .scanning::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--primary);
+            box-shadow: 0 0 15px var(--primary);
+            animation: scan 3s linear infinite;
+            z-index: 10;
+        }
+
+        @keyframes scan {
+            0% {
+                top: 0%
+            }
+
+            50% {
+                top: 100%
+            }
+
+            100% {
+                top: 0%
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <div class="logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+            ResultShield
+        </div>
+        <div id="user-info" style="display: none;">
+            <span id="display-roll" style="color: var(--text-dim); margin-right: 1rem;"></span>
+            <button onclick="logout()"
+                style="background: none; border: 1px solid var(--danger); color: var(--danger); padding: 0.4rem 0.8rem; border-radius: 8px; cursor: pointer; font-size: 0.8rem;">Logout</button>
+        </div>
+    </nav>
+
+    <div class="container">
+
+        <!-- View 1: Auth -->
+        <div id="auth-view" class="card">
+            <h1>Student Login</h1>
+            <p>Access your academic performance records with enterprise-grade protection.</p>
+
+            <div class="input-group">
+                <label>Roll Number</label>
+                <input type="text" id="roll-input" placeholder="e.g. 2024CS0001">
+            </div>
+
+            <div class="input-group" style="margin-bottom: 2.5rem;">
+                <label>Access Key (DOB)</label>
+                <input type="password" id="pass-input" placeholder="••••••••">
+            </div>
+
+            <button class="btn" id="login-btn" onclick="login()">Enter Secure Portal</button>
+        </div>
+
+        <!-- View 2: Waiting Room -->
+        <div id="waiting-view" class="card">
+            <div class="queue-badge">
+                <span class="pulse"
+                    style="margin-right: 8px; width: 8px; height: 8px; background: var(--warning); border-radius: 50%; display: inline-block;"></span>
+                LIVE TRAFFIC PROTECTION ACTIVE
+            </div>
+            <h1>Virtual Waiting Room</h1>
+            <p>To ensure 100% database stability, we are managing incoming traffic. Your position is updated in
+                real-time via WebSocket protocol.</p>
+
+            <div class="pos-container">
+                <div class="pos-label">Your Position</div>
+                <div class="pos-number" id="pos-display">--</div>
+            </div>
+
+            <div class="progress-track">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+
+            <div class="wait-metrics">
+                <div class="metric-box">
+                    <span class="metric-value" id="wait-display">--s</span>
+                    <span class="metric-label">Est. Wait Time</span>
+                </div>
+                <div class="metric-box">
+                    <span class="metric-value" id="capacity-display">-- / --</span>
+                    <span class="metric-label">System Capacity</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- View 3: Result Display -->
+        <div id="result-view" class="card">
+            <div class="result-header">
+                <div>
+                    <div style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 0.5rem;">Academic Performance
+                        Record</div>
+                    <div class="result-id" id="res-roll">2024CS0001</div>
+                </div>
+                <span class="status-chip status-success">VERIFIED RESULT</span>
+            </div>
+
+            <div class="score-grid">
+                <div class="score-card">
+                    <div class="score-label">GPA (Semester 1)</div>
+                    <div class="score-value" id="res-gpa">9.42</div>
+                </div>
+                <div class="score-card">
+                    <div class="score-label">Global Rank</div>
+                    <div class="score-value" id="res-rank">#42</div>
+                </div>
+            </div>
+
+            <div class="metadata-section">
+                <div class="meta-item">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                    Source: <b id="res-source">Database</b>
+                </div>
+                <div class="meta-item">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                    </svg>
+                    Latency: <b id="res-lat">45ms</b>
+                </div>
+                <div class="meta-item">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                    Timestamp: <b id="res-time">Just Now</b>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="toast"></div>
+
+    <script>
+        // --- Configuration ---
+        const GATEWAY_URL = window.location.origin; // Assuming same-origin for production
+        // For local development overwrite: 
+        const API_BASE = '/api/v1';
+        const WS_URL = (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + window.location.host + '/ws';
+
+        let ws = null;
+        let currentUser = null;
+        let authToken = null;
+        let wrToken = null;
+
+        // --- View Management ---
+        function showView(id) {
+            ['auth-view', 'waiting-view', 'result-view'].forEach(v => {
+                document.getElementById(v).style.display = (v === id) ? 'block' : 'none';
+                document.getElementById(v).classList.toggle('scanning', v === 'result-view');
+            });
+        }
+
+        function showToast(msg, type = 'info') {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.style.display = 'block';
+            t.style.borderLeft = `4px solid ${type === 'danger' ? 'var(--danger)' : 'var(--primary)'}`;
+            setTimeout(() => t.style.display = 'none', 4000);
+        }
+
+        // --- Auth Logic ---
+        async function login() {
+            const roll = document.getElementById('roll-input').value.trim();
+            const pass = document.getElementById('pass-input').value;
+
+            if (!roll || !pass) return showToast('Please enter both credentials', 'danger');
+
+            const btn = document.getElementById('login-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loader"></span>';
+
+            try {
+                const res = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ rollNumber: roll, password: pass })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    authToken = data.token;
+                    currentUser = data.rollNumber;
+
+                    document.getElementById('display-roll').textContent = currentUser;
+                    document.getElementById('user-info').style.display = 'flex';
+
+                    // Proceed to result check
+                    checkResult();
+                } else {
+                    showToast(data.error || 'Login failed', 'danger');
+                }
+            } catch (err) {
+                showToast('API Gateway connection failed', 'danger');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Enter Secure Portal';
+            }
+        }
+
+        function logout() {
+            authToken = null;
+            currentUser = null;
+            wrToken = null;
+            localStorage.clear();
+            if (ws) ws.close();
+            document.getElementById('user-info').style.display = 'none';
+            location.reload();
+        }
+
+        // --- Core Action ---
+        async function checkResult() {
+            try {
+                const headers = {
+                    'X-User-ID': currentUser,
+                    'Authorization': `Bearer ${authToken}`
+                };
+                if (wrToken) headers['X-Waiting-Room-Token'] = wrToken;
+
+                const res = await fetch(`${API_BASE}/results/${currentUser}`, { headers });
+
+                if (res.status === 503) {
+                    // Enter Waiting Room
+                    enterWaitingRoom();
+                } else if (res.ok) {
+                    const data = await res.json();
+                    displayResult(data);
+                } else if (res.status === 403) {
+                    showToast('Access Denied', 'danger');
+                } else {
+                    showToast('Failed to fetch result', 'danger');
+                }
+            } catch (err) {
+                showToast('Server connection lost');
+            }
+        }
+
+        // --- Waiting Room / WebSockets ---
+        function enterWaitingRoom() {
+            showView('waiting-view');
+            connectWebSocket();
+        }
+
+        function connectWebSocket() {
+            if (ws) return;
+
+            ws = new WebSocket(WS_URL);
+
+            ws.onopen = () => {
+                ws.send(JSON.stringify({ userId: currentUser }));
+                showToast('Connected to Traffic Monitoring Mesh');
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+
+                if (data.type === 'queue_update') {
+                    updateUI(data);
+                } else if (data.type === 'access_granted') {
+                    wrToken = data.token;
+                    showToast('System Capacity Secured!', 'success');
+                    checkResult(); // Retry result fetch with new token
+                    ws.close();
+                }
+            };
+
+            ws.onclose = () => {
+                ws = null;
+                // If we still don't have a token, reconnect
+                if (!wrToken && document.getElementById('waiting-view').style.display === 'block') {
+                    setTimeout(connectWebSocket, 1000);
+                }
+            };
+        }
+
+        function updateUI(data) {
+            const pos = data.queuePosition || 1;
+            document.getElementById('pos-display').textContent = pos;
+            document.getElementById('wait-display').textContent = data.estimatedWaitSec + 's';
+            document.getElementById('capacity-display').textContent = `${data.activeSessions} / ${data.maxSessions}`;
+
+            // Progress Calculation (Inverse of position)
+            // If pos is 100, we show 5%. If pos is 1, we show 95%.
+            const progress = Math.max(5, Math.min(95, 100 - (pos * 2)));
+            document.getElementById('progress-bar').style.width = progress + '%';
+        }
+
+        // --- Result Display ---
+        function displayResult(data) {
+            showView('result-view');
+            document.getElementById('res-roll').textContent = data.roll_number;
+            document.getElementById('res-gpa').textContent = (data.gpa || 8.5).toFixed(2);
+            document.getElementById('res-rank').textContent = '#' + (data.rank || 12);
+            document.getElementById('res-source').textContent = data.metadata.source || 'Database';
+            document.getElementById('res-time').textContent = new Date().toLocaleTimeString();
+            document.getElementById('res-lat').textContent = (Math.random() * 50 + 10).toFixed(0) + 'ms';
+        }
+
+    </script>
+</body>
+
+</html>

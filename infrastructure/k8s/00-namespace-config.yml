@@ -1,0 +1,50 @@
+---
+# ============================================================
+# ResultShield — Kubernetes Namespace
+# ============================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: resultshield
+  labels:
+    app.kubernetes.io/part-of: resultshield
+
+---
+# ============================================================
+# Secrets (override values in production via external vault)
+# ============================================================
+apiVersion: v1
+kind: Secret
+metadata:
+  name: resultshield-secrets
+  namespace: resultshield
+type: Opaque
+stringData:
+  postgres-password: "resultshield123"
+  redis-password: ""
+  jwt-secret: "resultshield-student-auth-secret-2024"
+  waiting-room-jwt-secret: "resultshield-waiting-room-secret"
+
+---
+# ============================================================
+# ConfigMap — shared environment
+# ============================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: resultshield-config
+  namespace: resultshield
+data:
+  LOG_LEVEL: "info"
+  NODE_ENV: "production"
+  REDIS_URL: "redis://redis-primary:6379"
+  MAX_ACTIVE_SESSIONS: "500"
+  THROUGHPUT_PER_SECOND: "50"
+  TOKEN_EXPIRY: "5m"
+  WS_PUSH_INTERVAL_MS: "3000"
+  AVG_SESSION_DURATION: "60"
+  WAITING_ROOM_ENABLED: "true"
+  ENABLE_ADAPTIVE_LIMITING: "true"
+  ENABLE_AI_PREDICTION: "true"
+  SCALING_THRESHOLD: "500"
+  POLL_INTERVAL: "30000"

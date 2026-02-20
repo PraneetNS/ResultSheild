@@ -1,0 +1,43 @@
+{
+  "name": "resultshield-api-gateway",
+  "version": "1.0.0",
+  "description": "API Gateway for ResultShield with rate limiting and routing",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "test": "jest --coverage",
+    "lint": "eslint src/"
+  },
+  "keywords": [
+    "api-gateway",
+    "rate-limiting",
+    "microservices"
+  ],
+  "author": "ResultShield Team",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+    "redis": "^4.6.11",
+    "axios": "^1.6.2",
+    "helmet": "^7.1.0",
+    "cors": "^2.8.5",
+    "winston": "^3.11.0",
+    "dotenv": "^16.3.1",
+    "uuid": "^9.0.1",
+    "prom-client": "^15.1.0",
+    "compression": "^1.7.4",
+    "axios-retry": "^3.9.1",
+    "express-validator": "^7.0.1",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2",
+    "jest": "^29.7.0",
+    "eslint": "^8.55.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

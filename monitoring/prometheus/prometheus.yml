@@ -1,0 +1,79 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'resultshield'
+    environment: 'production'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+# Load rules
+rule_files:
+  - 'alerts.yml'
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # API Gateway instances
+  - job_name: 'api-gateway'
+    static_configs:
+      - targets:
+          - 'api-gateway-1:3000'
+          - 'api-gateway-2:3000'
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # Result Service instances
+  - job_name: 'result-service'
+    static_configs:
+      - targets:
+          - 'result-service-1:8000'
+          - 'result-service-2:8000'
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # Waiting Room Service
+  - job_name: 'waiting-room'
+    static_configs:
+      - targets: ['waiting-room:8001']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # AI Predictor Service
+  - job_name: 'ai-predictor'
+    static_configs:
+      - targets: ['ai-predictor:8002']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # PostgreSQL Exporter
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    scrape_interval: 30s
+
+  # Redis Exporter
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 30s
+
+  # Node Exporter (System metrics)
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 30s
+
+  # Nginx
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx:9113']
+    scrape_interval: 30s

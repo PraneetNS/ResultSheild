@@ -1,0 +1,351 @@
+version: '3.8'
+
+services:
+  # ============================================
+  # Nginx Load Balancer (Phase 4)
+  # ============================================
+  nginx:
+    image: nginx:alpine
+    container_name: resultshield-nginx
+    ports:
+      - "80:80"
+      - "8080:8080"  # Health check port
+    volumes:
+      - ./infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - .:/usr/share/nginx/html:ro
+    depends_on:
+      - api-gateway
+      - result-service-1
+      - result-service-2
+      - result-service-3
+    networks:
+      - resultshield-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 256M
+
+  # ============================================
+  # API Gateway (Single Instance)
+  # ============================================
+  api-gateway:
+    build:
+      context: ./services/api-gateway
+      dockerfile: Dockerfile
+    container_name: resultshield-gateway
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - REDIS_URL=redis://redis-primary:6379
+      - RESULT_SERVICE_URL=http://nginx/results
+      - RATE_LIMIT_REQUESTS=100
+      - RATE_LIMIT_WINDOW=60
+      - LOG_LEVEL=info
+      - INSTANCE_ID=api-gateway-1
+      - WAITING_ROOM_URL=http://waiting-room:8001
+      - WAITING_ROOM_ENABLED=true
+      - AUTH_JWT_SECRET=resultshield-student-auth-secret-2024
+      - AUTH_JWT_EXPIRY=2h
+    depends_on:
+      - redis-primary
+    networks:
+      - resultshield-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+
+  # ============================================
+  # Virtual Waiting Room (Phase 5)
+  # ============================================
+  waiting-room:
+    build:
+      context: ./services/waiting-room
+      dockerfile: Dockerfile
+    container_name: resultshield-waiting-room
+    environment:
+      - NODE_ENV=production
+      - PORT=8001
+      - REDIS_URL=redis://redis-primary:6379
+      - MAX_ACTIVE_SESSIONS=5
+      - THROUGHPUT_PER_SECOND=2
+      - AVG_SESSION_DURATION=60
+      - JWT_SECRET=resultshield-waiting-room-secret
+      - TOKEN_EXPIRY=5m
+      - LOG_LEVEL=info
+      - WS_PUSH_INTERVAL_MS=3000
+    depends_on:
+      - redis-primary
+    networks:
+      - resultshield-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+
+  # ============================================
+  # Result Service - Instance 1 (Phase 4: Horizontal Scaling)
+  # ============================================
+  result-service-1:
+    build:
+      context: ./services/result-service
+      dockerfile: Dockerfile
+    container_name: resultshield-result-1
+    environment:
+      - DATABASE_URL=postgresql://resultshield:resultshield123@postgres-primary:5432/resultshield
+      - DATABASE_POOL_SIZE=20
+      - DATABASE_MAX_OVERFLOW=40
+      - DATABASE_QUERY_TIMEOUT=5000
+      - REDIS_URL=redis://redis-primary:6379
+      - REDIS_CACHE_TTL=3600
+      - CIRCUIT_BREAKER_ENABLED=true
+      - CIRCUIT_BREAKER_THRESHOLD=5
+      - CIRCUIT_BREAKER_TIMEOUT=30
+      - DEGRADED_MODE_ENABLED=true
+      - LOG_LEVEL=info
+      - INSTANCE_ID=result-service-1
+    depends_on:
+      - postgres-primary
+      - redis-primary
+    networks:
+      - resultshield-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+
+  # ============================================
+  # Result Service - Instance 2 (Phase 4: Horizontal Scaling)
+  # ============================================
+  result-service-2:
+    build:
+      context: ./services/result-service
+      dockerfile: Dockerfile
+    container_name: resultshield-result-2
+    environment:
+      - DATABASE_URL=postgresql://resultshield:resultshield123@postgres-primary:5432/resultshield
+      - DATABASE_POOL_SIZE=20
+      - DATABASE_MAX_OVERFLOW=40
+      - DATABASE_QUERY_TIMEOUT=5000
+      - REDIS_URL=redis://redis-primary:6379
+      - REDIS_CACHE_TTL=3600
+      - CIRCUIT_BREAKER_ENABLED=true
+      - CIRCUIT_BREAKER_THRESHOLD=5
+      - CIRCUIT_BREAKER_TIMEOUT=30
+      - DEGRADED_MODE_ENABLED=true
+      - LOG_LEVEL=info
+      - INSTANCE_ID=result-service-2
+    depends_on:
+      - postgres-primary
+      - redis-primary
+    networks:
+      - resultshield-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+
+  # ============================================
+  # Result Service - Instance 3 (Phase 4: Horizontal Scaling)
+  # ============================================
+  result-service-3:
+    build:
+      context: ./services/result-service
+      dockerfile: Dockerfile
+    container_name: resultshield-result-3
+    environment:
+      - DATABASE_URL=postgresql://resultshield:resultshield123@postgres-primary:5432/resultshield
+      - DATABASE_POOL_SIZE=20
+      - DATABASE_MAX_OVERFLOW=40
+      - DATABASE_QUERY_TIMEOUT=5000
+      - REDIS_URL=redis://redis-primary:6379
+      - REDIS_CACHE_TTL=3600
+      - CIRCUIT_BREAKER_ENABLED=true
+      - CIRCUIT_BREAKER_THRESHOLD=5
+      - CIRCUIT_BREAKER_TIMEOUT=30
+      - DEGRADED_MODE_ENABLED=true
+      - LOG_LEVEL=info
+      - INSTANCE_ID=result-service-3
+    depends_on:
+      - postgres-primary
+      - redis-primary
+    networks:
+      - resultshield-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+
+  # ============================================
+  # PostgreSQL Primary Database
+  # ============================================
+  postgres-primary:
+    image: postgres:15-alpine
+    container_name: resultshield-postgres-primary
+    environment:
+      - POSTGRES_DB=resultshield
+      - POSTGRES_USER=resultshield
+      - POSTGRES_PASSWORD=resultshield123
+    command: ["postgres", "-c", "max_connections=200"]
+    volumes:
+      - postgres-primary-data:/var/lib/postgresql/data
+      - ./infrastructure/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - resultshield-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+
+  # ============================================
+  # Redis Primary (Cache & Rate Limiting)
+  # ============================================
+  redis-primary:
+    image: redis:7-alpine
+    container_name: resultshield-redis-primary
+    command: redis-server --appendonly yes --maxmemory 1gb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-primary-data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - resultshield-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+
+  # ============================================
+  # Redis Commander (UI)
+  # ============================================
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: resultshield-redis-commander
+    environment:
+      - REDIS_HOSTS=primary:redis-primary:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis-primary
+    networks:
+      - resultshield-network
+    restart: unless-stopped
+
+  # ============================================
+  # Monitoring (Phase 6: Observability)
+  # ============================================
+  prometheus:
+    image: prom/prometheus:v2.50.1
+    container_name: resultshield-prometheus
+    volumes:
+      - ./infrastructure/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./infrastructure/prometheus/alert_rules.yml:/etc/prometheus/alert_rules.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    ports:
+      - "9090:9090"
+    networks:
+      - resultshield-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  grafana:
+    image: grafana/grafana:10.3.1
+    container_name: resultshield-grafana
+    volumes:
+      - ./infrastructure/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./infrastructure/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/etc/grafana/provisioning/dashboards/main_dashboard.json
+      - GF_ANALYTICS_REPORTING_ENABLED=false
+      - GF_SERVER_ROOT_URL=http://localhost:3001
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - resultshield-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
+  # ============================================
+  # AI Traffic Predictor (Phase 8)
+  # ============================================
+  ai-predictor:
+    build:
+      context: ./services/ai-predictor
+      dockerfile: Dockerfile
+    container_name: resultshield-predictor
+    environment:
+      - NODE_ENV=production
+      - PORT=8002
+      - REDIS_URL=redis://redis-primary:6379
+      - PROMETHEUS_URL=http://prometheus:9090
+      - WAITING_ROOM_URL=http://waiting-room:8001
+      - API_GATEWAY_URL=http://api-gateway:3000
+      - ENABLE_AI_PREDICTION=true
+      - SCALING_THRESHOLD=100
+      - POLL_INTERVAL=30000
+      - LOG_LEVEL=info
+    depends_on:
+      - prometheus
+      - redis-primary
+    ports:
+      - "8002:8002"
+    networks:
+      - resultshield-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
+networks:
+  resultshield-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
+
+volumes:
+  postgres-primary-data:
+  redis-primary-data:
+  prometheus-data:
+  grafana-data:

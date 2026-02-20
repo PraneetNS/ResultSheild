@@ -1,0 +1,191 @@
+{
+    "dashboard": {
+        "title": "ResultShield - System Overview",
+        "tags": [
+            "resultshield",
+            "monitoring"
+        ],
+        "timezone": "browser",
+        "panels": [
+            {
+                "id": 1,
+                "title": "Requests Per Second",
+                "type": "graph",
+                "targets": [
+                    {
+                        "expr": "rate(http_requests_total[1m])",
+                        "legendFormat": "{{job}} - {{instance}}"
+                    }
+                ],
+                "gridPos": {
+                    "h": 8,
+                    "w": 12,
+                    "x": 0,
+                    "y": 0
+                }
+            },
+            {
+                "id": 2,
+                "title": "Response Time (P95)",
+                "type": "graph",
+                "targets": [
+                    {
+                        "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))",
+                        "legendFormat": "{{job}} - P95"
+                    }
+                ],
+                "gridPos": {
+                    "h": 8,
+                    "w": 12,
+                    "x": 12,
+                    "y": 0
+                }
+            },
+            {
+                "id": 3,
+                "title": "Cache Hit Ratio",
+                "type": "gauge",
+                "targets": [
+                    {
+                        "expr": "rate(cache_hits_total[5m]) / (rate(cache_hits_total[5m]) + rate(cache_misses_total[5m]))",
+                        "legendFormat": "Cache Hit %"
+                    }
+                ],
+                "gridPos": {
+                    "h": 8,
+                    "w": 6,
+                    "x": 0,
+                    "y": 8
+                }
+            },
+            {
+                "id": 4,
+                "title": "Error Rate",
+                "type": "graph",
+                "targets": [
+                    {
+                        "expr": "rate(http_requests_total{status_code=~\"5..\"}[5m])",
+                        "legendFormat": "{{job}} - Errors"
+                    }
+                ],
+                "gridPos": {
+                    "h": 8,
+                    "w": 6,
+                    "x": 6,
+                    "y": 8
+                }
+            },
+            {
+                "id": 5,
+                "title": "Queue Depth",
+                "type": "graph",
+                "targets": [
+                    {
+                        "expr": "waiting_room_queue_depth",
+                        "legendFormat": "Queue Depth"
+                    }
+                ],
+                "gridPos": {
+                    "h": 8,
+                    "w": 6,
+                    "x": 12,
+                    "y": 8
+                }
+            },
+            {
+                "id": 6,
+                "title": "Active Connections",
+                "type": "stat",
+                "targets": [
+                    {
+                        "expr": "active_connections",
+                        "legendFormat": "Connections"
+                    }
+                ],
+                "gridPos": {
+                    "h": 8,
+                    "w": 6,
+                    "x": 18,
+                    "y": 8
+                }
+            },
+            {
+                "id": 7,
+                "title": "Database Response Time",
+                "type": "graph",
+                "targets": [
+                    {
+                        "expr": "rate(pg_stat_database_blks_read[5m])",
+                        "legendFormat": "DB Reads"
+                    }
+                ],
+                "gridPos": {
+                    "h": 8,
+                    "w": 12,
+                    "x": 0,
+                    "y": 16
+                }
+            },
+            {
+                "id": 8,
+                "title": "Circuit Breaker Status",
+                "type": "stat",
+                "targets": [
+                    {
+                        "expr": "circuit_breaker_state",
+                        "legendFormat": "{{service}}"
+                    }
+                ],
+                "gridPos": {
+                    "h": 8,
+                    "w": 12,
+                    "x": 12,
+                    "y": 16
+                }
+            },
+            {
+                "id": 9,
+                "title": "Predicted vs Actual Traffic",
+                "type": "graph",
+                "targets": [
+                    {
+                        "expr": "predicted_traffic_next_hour",
+                        "legendFormat": "Predicted"
+                    },
+                    {
+                        "expr": "current_traffic_rate",
+                        "legendFormat": "Actual"
+                    }
+                ],
+                "gridPos": {
+                    "h": 8,
+                    "w": 12,
+                    "x": 0,
+                    "y": 24
+                }
+            },
+            {
+                "id": 10,
+                "title": "Adaptive Rate Limit",
+                "type": "graph",
+                "targets": [
+                    {
+                        "expr": "adaptive_rate_limit",
+                        "legendFormat": "Rate Limit"
+                    }
+                ],
+                "gridPos": {
+                    "h": 8,
+                    "w": 12,
+                    "x": 12,
+                    "y": 24
+                }
+            }
+        ],
+        "refresh": "10s",
+        "time": {
+            "from": "now-1h",
+            "to": "now"
+        }
+    }
+}

@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ResultShield | Interactive Product Tour</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00f2fe;
+            --secondary: #4facfe;
+            --bg: #0a0b10;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --text: #e0e0e0;
+            --danger: #ff4b2b;
+            --success: #00e676;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            padding: 4rem 0;
+            background: radial-gradient(circle at center, rgba(79, 172, 254, 0.1) 0%, transparent 70%);
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: var(--card-bg);
+            border: 1px solid var(--primary);
+            border-radius: 50px;
+            font-size: 0.9rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+        }
+
+        .card h2 {
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #000;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+
+        /* Simulator Styles */
+        .simulator-display {
+            background: #000;
+            border-radius: 10px;
+            padding: 1.5rem;
+            height: 200px;
+            margin-bottom: 1rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            border: 1px dashed rgba(255, 255, 255, 0.2);
+        }
+
+        .loader {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .progress-inner {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .live-tag {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--danger);
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        .metric {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .label {
+            font-size: 0.8rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Flow Indicators */
+        .flow-dot {
+            width: 12px;
+            height: 12px;
+            background: var(--primary);
+            border-radius: 50%;
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        footer {
+            text-align: center;
+            padding: 4rem 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container">
+            <div class="badge">Virtual Waiting Room • Adaptive Rate Limiting • AI Prediction</div>
+            <h1>ResultShield Demo</h1>
+            <p>Experience how our system handles 500k+ concurrent users without breaking a sweat.</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="grid">
+            <!-- Feature 1: The Gateway -->
+            <div class="card" id="gateway-demo">
+                <h2>🚦 API Gateway</h2>
+                <div class="simulator-display" id="gateway-screen">
+                    <div id="status-idle">
+                        <p>System Ready</p>
+                        <p class="label">Listening on Port 80</p>
+                    </div>
+                </div>
+                <p>Protects backend services using the <strong>Token Bucket</strong> algorithm. Every request costs 1 token.</p>
+                <button class="btn btn-primary" onclick="simulateRequest()">Send Request</button>
+                <button class="btn btn-outline" onclick="simulateSpike()">Simulate DDoS Spike</button>
+            </div>
+
+            <!-- Feature 2: Waiting Room -->
+            <div class="card" id="waiting-room-demo">
+                <h2>⏳ Waiting Room</h2>
+                <div class="simulator-display" id="wr-screen">
+                    <div id="wr-empty">
+                        <p class="label">Queue Status</p>
+                        <p style="color: var(--success)">Empty (0 in line)</p>
+                    </div>
+                    <div id="wr-active" class="hidden">
+                        <div class="loader"></div>
+                        <p>You are in queue...</p>
+                        <p class="metric" id="queue-pos">#452</p>
+                        <p class="label">Est. Wait: <span id="wait-time">12s</span></p>
+                    </div>
+                </div>
+                <p>Fair FIFO queueing. When capacity is reached, users are buffered instead of getting 504 errors.</p>
+            </div>
+
+            <!-- Feature 3: AI Predictor -->
+            <div class="card" id="ai-demo">
+                <h2>🔮 AI Predictor</h2>
+                <div class="simulator-display" id="ai-screen">
+                    <span class="live-tag">AI LIVE</span>
+                    <div style="text-align: left; width: 100%;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                            <div>
+                                <p class="label">Next 5m Prediction</p>
+                                <p class="metric" id="predicted-rps">24.5k</p>
+                            </div>
+                            <div style="text-align: right;">
+                                <p class="label">Confidence</p>
+                                <p style="color: var(--success)">98.2%</p>
+                            </div>
+                        </div>
+                        <div class="progress-bar"><div class="progress-inner" id="ai-trend" style="width: 65%;"></div></div>
+                    </div>
+                </div>
+                <p>Proactively warms caches and expands service pools by analyzing Prometheus traffic trends.</p>
+            </div>
+        </div>
+
+        <section style="margin-top: 5rem; text-align: center;">
+            <h2 style="margin-bottom: 2rem;">How the Architecture Works</h2>
+            <div class="card" style="max-width: 800px; margin: 0 auto; text-align: left;">
+                <p>1. <strong>Nginx</strong> receives the request and forwards it to the <strong>Node.js API Gateway</strong>.</p>
+                <p>2. The Gateway checks <strong>Redis</strong> for Rate Limiter tokens.</p>
+                <p>3. If exhausted, the request is routed to the <strong>Waiting Room Service</strong>.</p>
+                <p>4. Once cleared, the **Result Service** (Python) fetches the pre-generated JSON snapshot from **PostgreSQL** read-replicas.</p>
+                <p>5. **AI Predictor** constantly scrapes metrics to adjust the "Throttle" dynamically.</p>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 ResultShield • Enterprise Result Delivery System</p>
+    </footer>
+
+    <script>
+        let queueLevel = 0;
+        let tokens = 10;
+        let isSpiking = false;
+
+        function simulateRequest() {
+            const screen = document.getElementById('gateway-screen');
+            if (isSpiking) {
+                showInQueue();
+                return;
+            }
+            
+            screen.innerHTML = '<div class="flow-dot"></div><p style="margin-top: 10px; color: var(--success)">Request Authorized</p><p class="label">Found in Cache (12ms)</p>';
+            setTimeout(() => {
+                screen.innerHTML = '<div id="status-idle"><p>System Ready</p><p class="label">Listening on Port 80</p></div>';
+            }, 1000);
+        }
+
+        function simulateSpike() {
+            isSpiking = true;
+            const screen = document.getElementById('gateway-screen');
+            screen.innerHTML = '<p style="color: var(--danger); font-weight: bold;">CRITICAL LOAD DETECTED</p><p class="label">RPS: 45,000+</p><div class="progress-bar"><div class="progress-inner" style="width: 100%; background: var(--danger)"></div></div>';
+            
+            showInQueue();
+
+            setTimeout(() => {
+                isSpiking = false;
+                hideInQueue();
+                screen.innerHTML = '<div id="status-idle"><p>System Ready</p><p class="label">Listening on Port 80</p></div>';
+            }, 5000 * Math.random() + 5000);
+        }
+
+        function showInQueue() {
+            document.getElementById('wr-empty').classList.add('hidden');
+            document.getElementById('wr-active').classList.remove('hidden');
+            let pos = Math.floor(Math.random() * 5000) + 1000;
+            document.getElementById('queue-pos').innerText = '#' + pos;
+            document.getElementById('wait-time').innerText = Math.floor(pos / 50) + 's';
+        }
+
+        function hideInQueue() {
+            document.getElementById('wr-empty').classList.remove('hidden');
+            document.getElementById('wr-active').classList.add('hidden');
+        }
+
+        // Randomize AI Predictions
+        setInterval(() => {
+            const pred = (Math.random() * 10 + 20).toFixed(1);
+            document.getElementById('predicted-rps').innerText = pred + 'k';
+            document.getElementById('ai-trend').style.width = (Math.random() * 40 + 40) + '%';
+        }, 3000);
+    </script>
+</body>
+</html>

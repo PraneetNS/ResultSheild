@@ -1,0 +1,67 @@
+global:
+  scrape_interval: 5s          # Phase 6: 5-second scrape interval
+  evaluation_interval: 5s
+  external_labels:
+    cluster: 'resultshield'
+    environment: 'production'
+
+# ─── Alertmanager ─────────────────────────────────────────────────────────────
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []           # Alertmanager not deployed; rules still evaluated
+
+# ─── Alert Rules ──────────────────────────────────────────────────────────────
+rule_files:
+  - "alert_rules.yml"
+
+# ─── Scrape Configurations ────────────────────────────────────────────────────
+scrape_configs:
+
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 15s
+
+  # API Gateway (single instance in current docker-compose)
+  - job_name: 'api-gateway'
+    metrics_path: '/metrics'
+    scrape_interval: 5s
+    static_configs:
+      - targets:
+          - 'api-gateway:3000'
+        labels:
+          service: 'api-gateway'
+
+  # Result Service (3 horizontal instances)
+  - job_name: 'result-service'
+    metrics_path: '/metrics'
+    scrape_interval: 5s
+    static_configs:
+      - targets:
+          - 'result-service-1:8000'
+          - 'result-service-2:8000'
+          - 'result-service-3:8000'
+        labels:
+          service: 'result-service'
+
+  # Virtual Waiting Room
+  - job_name: 'waiting-room'
+    metrics_path: '/metrics'
+    scrape_interval: 5s
+    static_configs:
+      - targets:
+          - 'waiting-room:8001'
+        labels:
+          service: 'waiting-room'
+
+  # AI Traffic Predictor (Phase 8)
+  - job_name: 'ai-predictor'
+    metrics_path: '/metrics'
+    scrape_interval: 5s
+    static_configs:
+      - targets:
+          - 'ai-predictor:8002'
+        labels:
+          service: 'ai-predictor'

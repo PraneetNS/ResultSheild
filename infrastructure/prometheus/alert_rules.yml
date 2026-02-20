@@ -1,0 +1,124 @@
+groups:
+  # ─── Latency Alerts ──────────────────────────────────────────────────────────
+  - name: latency_alerts
+    rules:
+      - alert: HighP95Latency
+        expr: >
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket[2m])) by (le, service, instance)
+          ) > 0.5
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High p95 latency on {{ $labels.service }} / {{ $labels.instance }}"
+          description: >
+            p95 latency is {{ $value | humanizeDuration }}, which exceeds the 500ms threshold.
+            Service: {{ $labels.service }}, Instance: {{ $labels.instance }}.
+
+  # ─── Queue Alerts ─────────────────────────────────────────────────────────────
+  - name: queue_alerts
+    rules:
+      - alert: QueueLengthCritical
+        expr: queue_length{service="waiting-room"} > 10000
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Waiting room queue length exceeds 10,000"
+          description: >
+            Queue length is {{ $value }} users, which exceeds the 10,000 threshold.
+            Users may experience very long wait times.
+
+  # ─── Database Alerts ──────────────────────────────────────────────────────────
+  - name: database_alerts
+    rules:
+      - alert: HighDBLatency
+        expr: >
+          histogram_quantile(0.95,
+            sum(rate(db_query_duration_seconds_bucket[2m])) by (le, service, instance)
+          ) > 0.2
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High DB query latency on {{ $labels.service }} / {{ $labels.instance }}"
+          description: >
+            p95 DB query duration is {{ $value | humanizeDuration }}, which exceeds the 200ms threshold.
+            Instance: {{ $labels.instance }}.
+
+      - alert: DatabaseErrors
+        expr: rate(db_errors_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Database errors detected on {{ $labels.instance }}"
+          description: "DB error rate is {{ $value | humanize }} errors/sec."
+
+  # ─── Error Rate Alerts ────────────────────────────────────────────────────────
+  - name: error_rate_alerts
+    rules:
+      - alert: HighErrorRate
+        expr: >
+          (
+            sum(rate(http_errors_total[2m])) by (service)
+            /
+            sum(rate(http_requests_total[2m])) by (service)
+          ) * 100 > 5
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High HTTP error rate on {{ $labels.service }}"
+          description: >
+            Error rate is {{ $value | humanize }}%, which exceeds the 5% threshold.
+            Service: {{ $labels.service }}.
+
+  # ─── Circuit Breaker Alerts ───────────────────────────────────────────────────
+  - name: circuit_breaker_alerts
+    rules:
+      - alert: CircuitBreakerOpen
+        expr: circuit_breaker_state{service="result-service"} == 1
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Circuit Breaker OPEN on {{ $labels.instance }}"
+          description: >
+            The circuit breaker is OPEN on {{ $labels.instance }}.
+            Database appears to be down or severely degraded. Degraded mode activated.
+
+      - alert: CircuitBreakerHalfOpen
+        expr: circuit_breaker_state{service="result-service"} == 2
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Circuit Breaker HALF-OPEN on {{ $labels.instance }}"
+          description: >
+            The circuit breaker is in HALF-OPEN state on {{ $labels.instance }}.
+            Service is recovering.
+
+  # ─── System Alerts ────────────────────────────────────────────────────────────
+  - name: system_alerts
+    rules:
+      - alert: HighCPUUsage
+        expr: cpu_usage_percent > 85
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage on {{ $labels.service }}"
+          description: "CPU usage is {{ $value | humanize }}% on {{ $labels.service }}."
+
+      - alert: HighMemoryUsage
+        expr: >
+          memory_usage_bytes{type="heap_used"}
+          / memory_usage_bytes{type="heap_total"} * 100 > 85
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High heap memory usage on {{ $labels.service }}"
+          description: "Heap usage is {{ $value | humanize }}% on {{ $labels.service }}."
