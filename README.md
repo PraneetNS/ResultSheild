@@ -109,5 +109,3 @@ This project follows strict production hardening standards including:
 - **X-Correlation-ID Tracking**
 - **Input Sanitization with express-validator**
 - **Graceful Shutdown Handlers**
-
-Refer to [SECURITY.md](./SECURITY.md) for deeper details.
