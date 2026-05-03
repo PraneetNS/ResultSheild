@@ -102,10 +102,3 @@ docker-compose up -d --build --scale result-service=3
 - **Health Dashboard**: `http://localhost:8002/health`
 
 ---
-
-## 🛡️ Security
-This project follows strict production hardening standards including:
-- **Strict JWT HS256 Validation**
-- **X-Correlation-ID Tracking**
-- **Input Sanitization with express-validator**
-- **Graceful Shutdown Handlers**
