@@ -79,21 +79,6 @@ Shift from reactive to proactive scaling.
 - **Monitoring**: Prometheus, Grafana
 - **Infrastructure**: Docker, Nginx, AI Predictor (Forecasting Engine)
 
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Docker & Docker Compose
-
-### Run the Stack
-```bash
-# Clone the repo
-git clone https://github.com/PraneetNS/ResultShield.git
-
-# Start the system with 3 result service instances
-docker-compose up -d --build --scale result-service=3
-```
 
 ### Access Points
 - **System API**: `http://localhost/api/v1`
